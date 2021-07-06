@@ -44,7 +44,7 @@ export default class ItemList extends Component {
          return (
             <li className="list-group-item"
                 key={id}
-                onClick={() => this.props.onCharSelected(i + 41)}
+                onClick={() => this.props.onItemSelected(i + 41)}
             >
                {label}
             </li>
