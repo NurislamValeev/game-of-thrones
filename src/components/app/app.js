@@ -1,47 +1,80 @@
-import React, {useState} from 'react'
+import React, {Component} from 'react'
 import {Col, Container, Row} from 'reactstrap'
 import Header from '../header'
 import RandomChar from '../randomChar'
-import ItemList from '../itemList'
-import CharDetails from '../charDetails'
+import CharacterPage from "../characterPage"
+import ItemList from "../itemList"
+import CharDetails from "../charDetails"
+import GotService from "../../services/gotService"
+import ErrorMessage from "../errorMessage";
 
-const App = () => {
-   const [visible, setVisible] = useState(true)
-   const [selectedChar, setSelectedChar] = useState(130)
+export default class App extends Component {
+   GotService = new GotService();
 
-   const toggleRandomChar = () => {
-      setVisible(prev => !prev)
+   state = {
+      selectedChar: null,
+      showRandomChar: true,
+      error: false,
    }
 
-   const onCharSelected = (id) => {
-      setSelectedChar(id)
-      console.log(selectedChar)
-
+   componentDidCatch() {
+      console.log('error')
+      this.setState({
+         error: true
+      })
    }
 
-   return (
-      <>
-         <Container>
-            <Header/>
-         </Container>
-         <Container>
-            <Row>
-               <Col lg={{size: 5, offset: 0}}>
-                  {visible ? <RandomChar/> : null}
-               </Col>
-            </Row>
-            <button onClick={toggleRandomChar} className='btn btn-primary mb-5'>Toggle random character</button>
-            <Row>
-               <Col md='6'>
-                  <ItemList onCharSelected={onCharSelected}/>
-               </Col>
-               <Col md='6'>
-                  <CharDetails charId={selectedChar}/>
-               </Col>
-            </Row>
-         </Container>
-      </>
-   )
+   toggleRandomChar = () => {
+      this.setState((state) => {
+         return {
+            showRandomChar: !state.showRandomChar
+         }
+      })
+   }
+
+
+   render() {
+      const char = this.state.showRandomChar ? <RandomChar/> : null
+
+      if (this.state.error) {
+         return <ErrorMessage/>
+      }
+
+      return (
+         <>
+            <Container>
+               <Header/>
+            </Container>
+            <Container>
+               <Row>
+                  <Col lg={{size: 5, offset: 0}}>
+                     {char}
+                  </Col>
+               </Row>
+               <button onClick={this.toggleRandomChar} className='btn btn-primary mb-5'>Toggle random character</button>
+               <CharacterPage/>
+               <Row>
+                  <Col md='6'>
+                     <ItemList onCharSelected={this.onCharSelected}
+                               getData={this.GotService.getAllBooks}
+                               renderItem={(item) => item.name}/>
+                  </Col>
+                  <Col md='6'>
+                     <CharDetails charId={this.state.selectedChar}/>
+                  </Col>
+               </Row>
+               <Row>
+                  <Col md='6'>
+                     <ItemList onCharSelected={this.onCharSelected}
+                               getData={this.GotService.getAllHouses}
+                               renderItem={(item) => item.name}/>
+                  </Col>
+                  <Col md='6'>
+                     <CharDetails charId={this.state.selectedChar}/>
+                  </Col>
+               </Row>
+            </Container>
+         </>
+      )
+   }
 }
-
-export default App;
