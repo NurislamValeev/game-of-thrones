@@ -1,75 +1,64 @@
 import React, {Component} from 'react'
 import './itemList.css'
-import Spinner from "../spinner";
-import ErrorMessage from "../errorMessage"
+import Spinner from '../spinner'
+import GotService from "../../services/gotService"
 
-export default class ItemList extends Component {
+const ItemList = (props) => {
 
-   state = {
-      itemList: null,
-      error: false
-   }
+   const renderItems = (arr) => {
+      return arr.map((item) => {
+         const {id} = item
 
-   componentDidMount() {
-      const {getData} = this.props
+         const label = props.renderItem(item)
 
-      getData()
-         .then((itemList) => {
-            this.setState({
-               itemList,
-               error: false
-            })
-         })
-         .catch(() => {this.onError()})
-   }
-
-   componentDidCatch() {
-      this.setState({
-         itemList: null,
-         error: true
-      })
-   }
-
-   onError(){
-      this.setState({
-         itemList: null,
-         error: true
-      })
-   }
-
-   renderItems(arr) {
-      return arr.map((item, i) => {
-         const {id, name} = item
-         const label = this.props.renderItem(item)
          return (
-            <li className="list-group-item"
-                key={id}
-                onClick={() => this.props.onItemSelected(i + 41)}
-            >
+            <li
+               key={id}
+               className="list-group-item"
+               onClick={() => props.onItemSelected(id)}>
                {label}
             </li>
          )
       })
    }
 
-   render() {
+   const {data} = props
+   const items = renderItems(data)
 
-      const {itemList, error} = this.state
+   return (
+      <ul className="item-list list-group">
+         {items}
+      </ul>
+   )
+}
 
-      if (error) {
-         return <ErrorMessage/>
+const withData = (View, getData) => {
+   return class extends Component {
+
+      state = {
+         data: null
       }
 
-      if (!itemList) {
-         return <Spinner/>
+      componentDidMount() {
+         getData()
+            .then((data) => {
+               this.setState({
+                  data
+               })
+            })
       }
 
-      const items = this.renderItems(itemList)
+      render() {
+         const {data} = this.state
 
-      return (
-         <ul className="item-list list-group">
-            {items}
-         </ul>
-      )
+         if (!data) {
+            return <Spinner/>
+         }
+
+         return <View {...this.props} data={data}/>
+      }
    }
 }
+
+const {getAllCharacters} = new GotService()
+export default withData(ItemList, getAllCharacters)
