@@ -1,6 +1,5 @@
-import React, {Component} from 'react';
-import './itemDetails.css';
-
+import React, {useEffect, useState} from 'react'
+import './itemDetails.css'
 
 const Field = ({item, field, label}) => {
    return (
@@ -11,58 +10,47 @@ const Field = ({item, field, label}) => {
    )
 }
 
-export {
-   Field
-};
+export {Field}
 
-export default class ItemDetails extends Component {
+const ItemDetails = (props) => {
 
+   const [item, setItem] = useState(null)
 
-   state = {
-      item: null
-   }
+   useEffect(() => {
+      updateItem()
+   }, [props.itemId])
 
-   componentDidMount() {
-      this.updateItem();
-   }
-
-   componentDidUpdate(prevProps) {
-      if (this.props.itemId !== prevProps.itemId) {
-         this.updateItem();
-      }
-   }
-
-   updateItem() {
-      const {itemId, getData} = this.props;
+   const updateItem = () => {
+      const {itemId, getData} = props
       if (!itemId) {
-         return;
+         return
       }
 
       getData(itemId)
          .then((item) => {
-            this.setState({item})
+            setItem(item)
          })
    }
 
-   render() {
 
-      if (!this.state.item) {
-         return <span className='select-error'>Please select item in the list</span>
-      }
-      const {item} = this.state;
-      const {name} = item;
-
-      return (
-         <div className="char-details rounded">
-            <h4>{name}</h4>
-            <ul className="list-group list-group-flush">
-               {
-                  React.Children.map(this.props.children, (child) => {
-                     return React.cloneElement(child, {item})
-                  })
-               }
-            </ul>
-         </div>
-      );
+   if (!item) {
+      return <span className='select-error'>Please select item in the list</span>
    }
+
+   const {name} = item
+
+   return (
+      <div className="char-details rounded">
+         <h4>{name}</h4>
+         <ul className="list-group list-group-flush">
+            {
+               React.Children.map(props.children, (child) => {
+                  return React.cloneElement(child, {item})
+               })
+            }
+         </ul>
+      </div>
+   )
 }
+
+export default ItemDetails
